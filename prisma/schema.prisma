@@ -1,0 +1,77 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String         @id @default(cuid())
+  clerkId          String         @unique
+  email            String         @unique
+  phone            String?
+  telegramChatId    String?        // Telegram chat ID for notifications
+  alerts           Alert[]
+  subscription     Subscription?
+  preferences      String?        // JSON stored as string for SQLite
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([clerkId])
+  @@index([telegramChatId])
+}
+
+model Subscription {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String   // "weekly", "monthly", "master"
+  status      String   @default("active")  // "active", "expired", "cancelled"
+  startDate   DateTime @default(now())
+  endDate     DateTime
+  paymentId   String?  // Razorpay payment ID or reference
+  amount      Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset       String
+  category    String
+  icon        String
+  targetPrice Float
+  condition   String
+  color       String    @default("primary-container")
+  progress    Float     @default(0)
+  isActive    Boolean   @default(true)
+  triggeredAt DateTime?
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model RateHistory {
+  id        String   @id @default(cuid())
+  base      String
+  target    String
+  rate      Float
+  source    String   @default("frankfurter")
+  timestamp DateTime @default(now())
+
+  @@index([base, target])
+  @@index([timestamp])
+}
