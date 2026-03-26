@@ -43,3 +43,4 @@ prisma/dev.db-journal
 
 # Debug
 debug.log
+.vercel
