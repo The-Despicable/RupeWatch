@@ -1,27 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import prisma from "@/lib/db";
 import { getOrCreateDbUser } from "@/lib/user";
 
 // DELETE /api/alerts/[id] — soft-delete (deactivate) an alert
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getOrCreateDbUser();
 
-    // Confirm the alert belongs to this user before touching it
     const alert = await prisma.alert.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!alert || alert.userId !== user.id) {
       return NextResponse.json({ error: "Alert not found" }, { status: 404 });
     }
 
-    // Soft-delete: mark inactive instead of destroying history
     const updated = await prisma.alert.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false },
     });
 
@@ -39,12 +38,13 @@ export async function DELETE(
 // PATCH /api/alerts/[id] — update target price or condition
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await getOrCreateDbUser();
 
-    const alert = await prisma.alert.findUnique({ where: { id: params.id } });
+    const alert = await prisma.alert.findUnique({ where: { id } });
     if (!alert || alert.userId !== user.id) {
       return NextResponse.json({ error: "Alert not found" }, { status: 404 });
     }
@@ -53,7 +53,7 @@ export async function PATCH(
     const { targetPrice, condition, color } = body;
 
     const updated = await prisma.alert.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(targetPrice !== undefined && { targetPrice: parseFloat(targetPrice) }),
         ...(condition !== undefined && { condition }),

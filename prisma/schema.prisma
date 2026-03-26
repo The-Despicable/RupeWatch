@@ -15,7 +15,7 @@ model User {
   clerkId          String         @unique
   email            String         @unique
   phone            String?
-  telegramChatId    String?        // Telegram chat ID for notifications
+  telegramChatId    String?        @unique  // Telegram chat ID for notifications
   alerts           Alert[]
   subscription     Subscription?
   preferences      String?        // JSON stored as string for SQLite
@@ -23,7 +23,6 @@ model User {
   updatedAt        DateTime       @updatedAt
 
   @@index([clerkId])
-  @@index([telegramChatId])
 }
 
 model Subscription {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import prisma from "@/lib/db";
 import { getOrCreateDbUser } from "@/lib/user";
 
 // GET /api/alerts — list the authenticated user's active alerts
